@@ -55,6 +55,7 @@ const poblarProductos = async (request, response) => {
     }
 };
 
+
 const obtenerProductos = async (request, response) => {
     try {
         const query = `select p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, c.nombre as categoria
@@ -68,4 +69,26 @@ const obtenerProductos = async (request, response) => {
     }
 };
 
-module.exports = { poblarProductos, obtenerProductos };
+const obtenerProducto = async (request, response) => {
+    const { nombre } = request.params;
+
+    try {
+        const { rows, rowCount } = await pool.query(
+            `SELECT * FROM productos WHERE nombre ILIKE $1;`,
+            [`%${nombre}%`]
+        );
+
+         if (rowCount === 0) {
+            return response.status(404).json({ error: 'Producto no encontrado' });
+        }
+        response.status(200).json(rows);
+
+    } catch(error){
+        console.error(error);
+        return response.status(500).json({error: error.message});
+    }
+
+    
+}
+
+module.exports = { poblarProductos, obtenerProductos, obtenerProducto };
