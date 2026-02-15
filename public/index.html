@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Búsqueda de Productos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Búsqueda de Productos</h1>
+        
+        <div class="search-container">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Buscar productos por nombre o descripción..."
+                autocomplete="off"
+            >
+            <button id="clearBtn" disabled>Limpiar Búsqueda</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Buscando...</p>
+        </div>
+
+        <div class="no-results" id="noResults">
+            <div class="no-results-icon">🔍❌</div>
+            <p>No encontramos productos que coincidan con <strong class="highlight" id="searchTerm"></strong></p>
+            <p style="margin-top: 10px; font-size: 0.9em; color: #999;">Intenta con otros términos de búsqueda</p>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <table id="productTable">
+            <thead>
+                <tr>
+                    <th>NOMBRE</th>
+                    <th>DESCRIPCIÓN</th>
+                    <th>CATEGORÍA</th>
+                    <th>PRECIO</th>
+                    <th>STOCK</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Los productos se cargarán aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

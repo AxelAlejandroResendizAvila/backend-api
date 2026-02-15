@@ -134,4 +134,36 @@ const obtenerProducto = async (request, response) => {
     
 }
 
-module.exports = { poblarProductos, obtenerProductos, obtenerCategoria, obtenerProducto };
+const buscarProductos = async (request, response) => {
+    const { q } = request.query;
+
+    if (!q || q.trim() === '') {
+        return response.status(400).json({ 
+            error: 'Bad Request', 
+            mensaje: 'El parámetro de búsqueda "q" es requerido' 
+        });
+    }
+
+    try {
+        const query = `
+            SELECT p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, c.nombre as categoria
+            FROM productos p
+            JOIN categoria c ON p.id_categoria = c.id
+            WHERE p.nombre ILIKE $1 OR p.descripcion ILIKE $1
+            ORDER BY p.nombre;
+        `;
+
+        const { rows, rowCount } = await pool.query(query, [`%${q}%`]);
+
+        response.status(200).json({
+            cantidad: rowCount,
+            resultados: rows
+        });
+
+    } catch (error) {
+        console.error(error);
+        return response.status(500).json({ error: error.message });
+    }
+};
+
+module.exports = { poblarProductos, obtenerProductos, obtenerCategoria, obtenerProducto, buscarProductos };
