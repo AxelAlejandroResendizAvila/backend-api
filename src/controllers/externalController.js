@@ -72,8 +72,94 @@ const poblarProductos = async (request, response) => {
     }
 };
 
+const crearProducto = async (request, response) => {
+    const { nombre, precio, stock, descripcion, imagen_url, categoria } = request.body;
+    if (!nombre) {
+        return response.status(400).json({ error: 'El campo "nombre" es obligatorio' });
+    }
+    if (!precio) {
+        return response.status(400).json({ error: 'El campo "precio" es obligatorio' });
+    }
+    if (!categoria) {
+        return response.status(400).json({ error: 'El campo "categoria" es obligatorio' });
+    }
+    
+    const client = await pool.connect();
+    
+    try {
+        await client.query('BEGIN');
+        
+        // Insertar o buscar categoría
+        const query = `
+            INSERT INTO categoria (nombre)
+            VALUES ($1)
+            ON CONFLICT ON CONSTRAINT categoria_nombre_unique
+            DO NOTHING
+            RETURNING id;
+        `;
+        let categoriaResult = await client.query(query, [categoria]);
 
+        let categoryId;
+        if (categoriaResult.rows.length > 0) {
+            categoryId = categoriaResult.rows[0].id;
+        }
+        else {
+            const selectCategoria = `
+                SELECT id FROM categoria WHERE nombre = $1
+            `;
+            const existing = await client.query(selectCategoria, [categoria]);
+            categoryId = existing.rows[0].id;
+        }
+        
+        // Insertar el producto
+        const productoQuery = `
+            INSERT INTO productos (nombre, precio, stock, descripcion, imagen_url, id_categoria)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *;
+        `;
+        
+        const productoResult = await client.query(productoQuery, [
+            nombre,
+            precio,
+            stock || 0,
+            descripcion || '',
+            imagen_url || '',
+            categoryId
+        ]);
+        
+        await client.query('COMMIT');
+        
+        response.status(201).json({
+            mensaje: 'Producto creado exitosamente',
+            producto: productoResult.rows[0]
+        });
+        
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Error al crear producto:', error);
+        response.status(500).json({ error: error.message });
+    } finally {
+        client.release();
+    }
+};
 
+const obtenerProductoById = async (request, response) => {
+   const { id } = request.params;
+   try {
+        const query = `select p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, c.nombre as categoria
+        from productos p
+        join categoria c on p.id_categoria = c.id
+        where p.id = $1`;
+        const result = await pool.query(query, [id]);
+        if (result.rowCount === 0) {
+            return response.status(404).json({ error: 'Producto no encontrado' });
+        }
+        response.status(200).json(result.rows[0]);
+   } catch (error) {
+        console.log(`Error: ${error}`);
+        response.status(500).json({error: error.message})
+   }
+};
 
 const obtenerProductos = async (request, response) => {
     try {
@@ -166,4 +252,4 @@ const buscarProductos = async (request, response) => {
     }
 };
 
-module.exports = { poblarProductos, obtenerProductos, obtenerCategoria, obtenerProducto, buscarProductos };
+module.exports = { poblarProductos, crearProducto, obtenerProductoById, obtenerProductos, obtenerCategoria, obtenerProducto, buscarProductos };

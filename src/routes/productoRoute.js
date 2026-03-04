@@ -1,15 +1,21 @@
 const express = require('express');
-const { poblarProductos, obtenerProductos, obtenerCategoria, obtenerProducto, buscarProductos } = require('../controllers/externalController');
+const { poblarProductos, crearProducto, obtenerProductoById, obtenerProductos, obtenerCategoria, obtenerProducto, buscarProductos  } = require('../controllers/externalController');
+const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
 
-router.post('/poblar', poblarProductos);
+router.post('/poblar', authMiddleware, poblarProductos);
 
-router.get('/obtener', obtenerProductos);
+router.post('/crear', authMiddleware, crearProducto);
 
-router.get('/buscar', buscarProductos);
+router.get('/', authMiddleware, obtenerProductos);
 
-router.get('/categoria/:categoria', obtenerCategoria)
+router.get('/buscar', authMiddleware, buscarProductos);
 
-router.get('/producto/:nombre', obtenerProducto);
+router.get('/categoria/:categoria', authMiddleware, obtenerCategoria);
+
+router.get('/producto/:nombre', authMiddleware, obtenerProducto);
+
+// Ruta dinámica al final para evitar conflictos
+router.get('/:id', authMiddleware, obtenerProductoById);
 
 module.exports = router;
