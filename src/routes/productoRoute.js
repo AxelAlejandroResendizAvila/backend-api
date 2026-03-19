@@ -1,5 +1,7 @@
 const express = require('express');
-const { poblarProductos, crearProducto, obtenerProductoById, obtenerProductos, obtenerCategoria, obtenerProducto, buscarProductos  } = require('../controllers/externalController');
+const { poblarProductos } = require('../controllers/externalController');
+const { crearProducto, obtenerProductoById, obtenerProductos, obtenerCategoria, obtenerProducto, buscarProductos  } = require('../controllers/productoController');
+
 const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
 

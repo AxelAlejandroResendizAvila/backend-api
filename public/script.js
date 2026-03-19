@@ -1,4 +1,13 @@
 const API_URL = 'http://localhost:4000/api/productos';
+const AUTH_URL = 'http://localhost:4000/api/auth';
+
+// Elementos del DOM
+const loginModal = document.getElementById('loginModal');
+const loginForm = document.getElementById('loginForm');
+const loginError = document.getElementById('loginError');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const mainContainer = document.getElementById('mainContainer');
 
 const searchInput = document.getElementById('searchInput');
 const clearBtn = document.getElementById('clearBtn');
@@ -9,8 +18,81 @@ const tableBody = document.getElementById('tableBody');
 const stats = document.getElementById('stats');
 const searchTerm = document.getElementById('searchTerm');
 
+// Verificar si ya hay token al cargar
+window.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        mostrarApp();
+        cargarTodosProductos();
+    }
+});
+
+// Manejar login
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Iniciando sesión...';
+    loginError.classList.remove('show');
+    
+    try {
+        const response = await fetch(`${AUTH_URL}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.msg || 'Error al iniciar sesión');
+        }
+        
+        // Guardar token
+        localStorage.setItem('token', data.token);
+        
+        // Mostrar app
+        mostrarApp();
+        cargarTodosProductos();
+        
+    } catch (error) {
+        loginError.textContent = error.message;
+        loginError.classList.add('show');
+    } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Iniciar Sesión';
+    }
+});
+
+// Manejar logout
+logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    ocultarApp();
+});
+
+function mostrarApp() {
+    loginModal.style.display = 'none';
+    mainContainer.style.display = 'block';
+}
+
+function ocultarApp() {
+    loginModal.style.display = 'flex';
+    mainContainer.style.display = 'none';
+    loginForm.reset();
+    loginError.classList.remove('show');
+}
+
 async function fetchJSON(url) {
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        }
+    });
 
     if (!res.ok) {
         let msg = `Error ${res.status}`;
@@ -95,7 +177,7 @@ async function cargarTodosProductos() {
     try {
         showLoading();
 
-        const productos = await fetchJSON(`${API_URL}/obtener`);
+        const productos = await fetchJSON(`${API_URL}`);
 
         mostrarProductos(productos);
         stats.textContent = `Mostrando ${productos.length} productos`;
@@ -150,4 +232,4 @@ searchInput.addEventListener('keypress', e => {
     }
 });
 
-cargarTodosProductos();
+// cargarTodosProductos(); // Se carga automáticamente después del login
