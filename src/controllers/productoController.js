@@ -75,7 +75,7 @@ const crearProducto = async (request, response) => {
 const obtenerProductoById = async (request, response) => {
    const { id } = request.params;
    try {
-        const query = `select p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, c.nombre as categoria
+    const query = `select p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, p.youtube_id, c.nombre as categoria
         from productos p
         join categoria c on p.id_categoria = c.id
         where p.id = $1`;
@@ -92,7 +92,7 @@ const obtenerProductoById = async (request, response) => {
 
 const obtenerProductos = async (request, response) => {
     try {
-        const query = `select p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, c.nombre as categoria
+        const query = `select p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, p.youtube_id, c.nombre as categoria
         from productos p
         join categoria c on p.id_categoria = c.id`;
         const result = await pool.query(query);
@@ -161,7 +161,7 @@ const buscarProductos = async (request, response) => {
 
     try {
         const query = `
-            SELECT p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, c.nombre as categoria
+            SELECT p.id, p.nombre, p.precio, p.stock, p.descripcion, p.imagen_url, p.youtube_id, c.nombre as categoria
             FROM productos p
             JOIN categoria c ON p.id_categoria = c.id
             WHERE p.nombre ILIKE $1 OR p.descripcion ILIKE $1
